@@ -1,16 +1,18 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedList;
 
 public class Main {
     public static void main(String[] args) throws Exception {
         BufferedReader inpReader = new BufferedReader(new InputStreamReader(System.in));
         String currentDir = System.getProperty("user.dir");
+
         while (true)
         {
             System.out.print("$ ");
@@ -50,16 +52,58 @@ public class Main {
                     System.out.println(currentDir);
                     break;
                 case "cd":
-                    String cdArg = arguments[1];
-                    if(cdArg.startsWith("/"))
-                    {
-                        Path path = Paths.get(cdArg);
-                        if(Files.isDirectory(path))
-                        {
-                            currentDir = cdArg;
+                    if(arguments.length>1) {
+                        String cdArg = arguments[1];
+                        if (cdArg.startsWith("/")) {
+                            Path path = Paths.get(cdArg);
+                            if (Files.isDirectory(path)) {
+                                currentDir = cdArg;
+                            } else
+                                System.out.println("cd: " + cdArg + ": No such file or directory");
                         }
-                        else
-                            System.out.println("cd: "+cdArg+": No such file or directory");
+                        else if(cdArg.startsWith("."))
+                        {
+                            Deque<String> cwdStack = new LinkedList<>();
+                            for(String dir: currentDir.split("/"))
+                            {
+                                cwdStack.addLast(dir);
+                            }
+                            String[] splits = cdArg.split("/");
+                            for(String split: splits)
+                            {
+                                switch (split)
+                                {
+                                    case "./":
+                                        break;
+                                    case "../":
+                                        if(!cwdStack.isEmpty())
+                                            cwdStack.removeLast();
+                                        else
+                                            System.out.println("cd: "+cdArg+": No such file or directory.");
+                                }
+                            }
+
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("/");
+
+                            while (!cwdStack.isEmpty()) {
+                                sb.append("/");
+                                sb.append(cwdStack.removeFirst());
+                            }
+
+                            currentDir = sb.toString();
+                        }
+                        else if(!cdArg.startsWith("$"))
+                        {
+                            Path newPath = Paths.get(currentDir,cdArg);
+                            if(Files.isDirectory(newPath))
+                            {
+                                currentDir = newPath.toString();
+
+                            }
+                            else
+                                System.out.println("cd: "+cdArg+": No such file or directory.");
+                        }
                     }
                     break;
                 default:
@@ -70,6 +114,7 @@ public class Main {
                     else
                     {
                         ProcessBuilder pb = new ProcessBuilder(arguments);
+                        pb.directory(new File(currentDir));
                         pb.inheritIO();
                         Process process = pb.start();
                         process.waitFor();
