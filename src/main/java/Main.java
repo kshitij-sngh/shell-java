@@ -54,55 +54,13 @@ public class Main {
                 case "cd":
                     if(arguments.length>1) {
                         String cdArg = arguments[1];
-                        if (cdArg.startsWith("/")) {
-                            Path path = Paths.get(cdArg);
-                            if (Files.isDirectory(path)) {
-                                currentDir = cdArg;
-                            } else
-                                System.out.println("cd: " + cdArg + ": No such file or directory");
-                        }
-                        else if(cdArg.startsWith("."))
+                        Path targetPath;
+                        if(!cdArg.startsWith("$"))
                         {
-                            Deque<String> cwdStack = new LinkedList<>();
-                            for(String dir: currentDir.split("/"))
+                            targetPath = Path.of(currentDir).resolve(cdArg).normalize();
+                            if(Files.isDirectory(targetPath))
                             {
-                                cwdStack.addLast(dir);
-                            }
-                            cwdStack.removeFirst();
-
-                            String[] splits = cdArg.split("/");
-                            for(String split: splits)
-                            {
-                                switch (split)
-                                {
-                                    case ".":
-                                        break;
-                                    case "..":
-                                        if(!cwdStack.isEmpty())
-                                            cwdStack.removeLast();
-                                        else
-                                            System.out.println("cd: "+cdArg+": No such file or directory.");
-                                        break;
-                                    default:
-                                        cwdStack.addLast(split);
-                                }
-                            }
-
-                            StringBuilder sb = new StringBuilder();
-                            while (!cwdStack.isEmpty()) {
-                                sb.append("/");
-                                sb.append(cwdStack.removeFirst());
-                            }
-
-                            currentDir = sb.isEmpty() ? "/" : sb.toString();
-                        }
-                        else if(!cdArg.startsWith("$"))
-                        {
-                            Path newPath = Paths.get(currentDir,cdArg);
-                            if(Files.isDirectory(newPath))
-                            {
-                                currentDir = newPath.toString();
-
+                                currentDir = targetPath.toAbsolutePath().toString();
                             }
                             else
                                 System.out.println("cd: "+cdArg+": No such file or directory.");
