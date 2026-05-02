@@ -14,6 +14,8 @@ public class Main {
             String line = inpReader.readLine();
             if(line==null)
                 break;
+            if("exit".equals(line))
+                return;
             System.out.println(line + ": command not found");
         }
     }
