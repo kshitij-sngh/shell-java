@@ -47,7 +47,7 @@ public class Main {
                     }
                     break;
                 case "pwd":
-                    String pwd = System.getenv().get("PWD");
+                    String pwd = System.getProperty("user.dir");
                     System.out.println(pwd);
                     break;
                 default:
