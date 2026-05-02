@@ -34,6 +34,7 @@ public class Main {
                         System.out.println(cmd+" is a shell builtin");
                     else
                         System.out.println(cmd+": is not found");
+                    break;
                 default:
                     System.out.println(command + ": command not found");
             }
