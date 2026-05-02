@@ -1,11 +1,15 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
         BufferedReader inpReader = new BufferedReader(new InputStreamReader(System.in));
+
         while (true)
         {
             System.out.print("$ ");
@@ -32,8 +36,13 @@ public class Main {
                     String cmd = arguments[1];
                     if(Constants.BUILT_IN_CMDS.contains(cmd))
                         System.out.println(cmd+" is a shell builtin");
-                    else
-                        System.out.println(cmd+": not found");
+                    else {
+                        Path path = Helper.checkPathForCmd(cmd);
+                        if(path!=null)
+                            System.out.println(cmd + "is "+path);
+                        else
+                            System.out.println(cmd + ": not found");
+                    }
                     break;
                 default:
                     System.out.println(command + ": command not found");
