@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
         BufferedReader inpReader = new BufferedReader(new InputStreamReader(System.in));
-
+        String currentDir = System.getProperty("user.dir");
         while (true)
         {
             System.out.print("$ ");
@@ -47,8 +47,20 @@ public class Main {
                     }
                     break;
                 case "pwd":
-                    String pwd = System.getProperty("user.dir");
-                    System.out.println(pwd);
+                    System.out.println(currentDir);
+                    break;
+                case "cd":
+                    String cdArg = arguments[0];
+                    if(cdArg.startsWith("/"))
+                    {
+                        Path path = Paths.get(cdArg);
+                        if(Files.isDirectory(path))
+                        {
+                            currentDir = cdArg;
+                        }
+                        else
+                            System.out.println("cd: "+cdArg+": No such file or directory");
+                    }
                     break;
                 default:
                     subCmd = arguments[0];
