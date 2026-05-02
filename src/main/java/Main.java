@@ -63,7 +63,7 @@ public class Main {
                                 currentDir = targetPath.toAbsolutePath().toString();
                             }
                             else
-                                System.out.println("cd: "+cdArg+": No such file or directory.");
+                                System.out.println("cd: "+cdArg+": No such file or directory");
                         }
                     }
                     break;
