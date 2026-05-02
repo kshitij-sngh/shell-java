@@ -57,12 +57,11 @@ public class Main {
                         Path targetPath;
                         if(cdArg.startsWith("~"))
                         {
-                            String envHome = System.getenv("home");
+                            String envHome = System.getProperty("user.home");
                             if(cdArg.length()>1)
                                 targetPath = Path.of(envHome, cdArg.substring(1)).resolve(cdArg).normalize();
                             else
                                 targetPath = Path.of(envHome);
-
 
                         }
                         else
