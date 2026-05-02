@@ -55,16 +55,25 @@ public class Main {
                     if(arguments.length>1) {
                         String cdArg = arguments[1];
                         Path targetPath;
-                        if(!cdArg.startsWith("$"))
+                        if(cdArg.startsWith("~"))
+                        {
+                            String envHome = System.getenv("home");
+                            targetPath = Path.of(envHome, cdArg.substring(1)).resolve(cdArg).normalize();
+
+
+                        }
+                        else
                         {
                             targetPath = Path.of(currentDir).resolve(cdArg).normalize();
-                            if(Files.isDirectory(targetPath))
-                            {
-                                currentDir = targetPath.toAbsolutePath().toString();
-                            }
-                            else
-                                System.out.println("cd: "+cdArg+": No such file or directory");
                         }
+                        
+                        if(Files.isDirectory(targetPath))
+                        {
+                            currentDir = targetPath.toAbsolutePath().toString();
+                        }
+                        else
+                            System.out.println("cd: "+cdArg+": No such file or directory");
+
                     }
                     break;
                 default:
