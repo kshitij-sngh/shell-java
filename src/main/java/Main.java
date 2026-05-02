@@ -39,7 +39,7 @@ public class Main {
                     else {
                         Path path = Helper.checkPathForCmd(cmd);
                         if(path!=null)
-                            System.out.println(cmd + "is "+path);
+                            System.out.println(cmd + " is "+path);
                         else
                             System.out.println(cmd + ": not found");
                     }
