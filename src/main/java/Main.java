@@ -21,7 +21,7 @@ public class Main {
                 case "exit":
                     return;
                 case "echo":
-                    System.out.println(arguments[1]);
+                    System.out.print(arguments[1]);
                     for(int i=2; i<arguments.length; i++)
                         System.out.print(" "+arguments[i]);
                     System.out.println();
