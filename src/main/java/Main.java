@@ -9,14 +9,26 @@ public class Main {
         while (true)
         {
             System.out.print("$ ");
-            System.out.flush();
 
             String line = inpReader.readLine();
             if(line==null)
                 break;
-            if("exit".equals(line))
-                return;
-            System.out.println(line + ": command not found");
+
+            String[] arguments = line.trim().split(" ");
+            String cmd = arguments[0];
+            switch (cmd)
+            {
+                case "exit":
+                    return;
+                case "echo":
+                    System.out.println(arguments[1]);
+                    for(int i=2; i<arguments.length; i++)
+                        System.out.print(" "+arguments[i]);
+                    System.out.println();
+                    break;
+                default:
+                    System.out.println(cmd + ": command not found");
+            }
         }
     }
 }
