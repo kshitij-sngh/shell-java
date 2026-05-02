@@ -11,7 +11,7 @@ import java.util.LinkedList;
 public class Main {
     public static void main(String[] args) throws Exception {
         BufferedReader inpReader = new BufferedReader(new InputStreamReader(System.in));
-        String currentDir = System.getProperty("user.dir");
+        String currentDir = System.getProperty("user.dir"); //"/tmp/pineapple";
 
         while (true)
         {
@@ -68,14 +68,16 @@ public class Main {
                             {
                                 cwdStack.addLast(dir);
                             }
+                            cwdStack.removeFirst();
+
                             String[] splits = cdArg.split("/");
                             for(String split: splits)
                             {
                                 switch (split)
                                 {
-                                    case "./":
+                                    case ".":
                                         break;
-                                    case "../":
+                                    case "..":
                                         if(!cwdStack.isEmpty())
                                             cwdStack.removeLast();
                                         else
@@ -87,8 +89,6 @@ public class Main {
                             }
 
                             StringBuilder sb = new StringBuilder();
-                            sb.append("/");
-
                             while (!cwdStack.isEmpty()) {
                                 sb.append("/");
                                 sb.append(cwdStack.removeFirst());
