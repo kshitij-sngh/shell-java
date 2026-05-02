@@ -58,7 +58,10 @@ public class Main {
                         if(cdArg.startsWith("~"))
                         {
                             String envHome = System.getenv("home");
-                            targetPath = Path.of(envHome, cdArg.substring(1)).resolve(cdArg).normalize();
+                            if(cdArg.length()>1)
+                                targetPath = Path.of(envHome, cdArg.substring(1)).resolve(cdArg).normalize();
+                            else
+                                targetPath = Path.of(envHome);
 
 
                         }
@@ -66,7 +69,7 @@ public class Main {
                         {
                             targetPath = Path.of(currentDir).resolve(cdArg).normalize();
                         }
-                        
+
                         if(Files.isDirectory(targetPath))
                         {
                             currentDir = targetPath.toAbsolutePath().toString();
