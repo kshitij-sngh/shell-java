@@ -94,7 +94,7 @@ public class Main {
                                 sb.append(cwdStack.removeFirst());
                             }
 
-                            currentDir = sb.toString();
+                            currentDir = sb.isEmpty() ? "/" : sb.toString();
                         }
                         else if(!cdArg.startsWith("$"))
                         {
