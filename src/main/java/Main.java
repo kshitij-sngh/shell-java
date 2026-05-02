@@ -5,9 +5,16 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        System.out.print("$ ");
         BufferedReader inpReader = new BufferedReader(new InputStreamReader(System.in));
-        String line = inpReader.readLine();
-        System.out.print(line+": command not found");
+        while (true)
+        {
+            System.out.print("$ ");
+            System.out.flush();
+
+            String line = inpReader.readLine();
+            if(line==null)
+                break;
+            System.out.println(line + ": command not found");
+        }
     }
 }
