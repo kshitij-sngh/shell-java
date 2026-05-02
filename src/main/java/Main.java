@@ -33,7 +33,7 @@ public class Main {
                     if(Constants.BUILT_IN_CMDS.contains(cmd))
                         System.out.println(cmd+" is a shell builtin");
                     else
-                        System.out.println(cmd+": is not found");
+                        System.out.println(cmd+": not found");
                     break;
                 default:
                     System.out.println(command + ": command not found");
