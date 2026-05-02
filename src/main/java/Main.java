@@ -15,19 +15,27 @@ public class Main {
                 break;
 
             String[] arguments = line.trim().split(" ");
-            String cmd = arguments[0];
-            switch (cmd)
+            String command = arguments[0];
+            switch (command)
             {
                 case "exit":
                     return;
                 case "echo":
-                    System.out.print(arguments[1]);
-                    for(int i=2; i<arguments.length; i++)
-                        System.out.print(" "+arguments[i]);
+                    if(arguments.length>1) {
+                        System.out.print(arguments[1]);
+                        for (int i = 2; i < arguments.length; i++)
+                            System.out.print(" " + arguments[i]);
+                    }
                     System.out.println();
                     break;
+                case "type":
+                    String cmd = arguments[1];
+                    if(Constants.BUILT_IN_CMDS.contains(cmd))
+                        System.out.println(cmd+" is a shell builtin");
+                    else
+                        System.out.println(cmd+": is not found");
                 default:
-                    System.out.println(cmd + ": command not found");
+                    System.out.println(command + ": command not found");
             }
         }
     }
