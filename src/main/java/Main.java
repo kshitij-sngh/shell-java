@@ -20,6 +20,7 @@ public class Main {
 
             String[] arguments = line.trim().split(" ");
             String command = arguments[0];
+            String subCmd;
             switch (command)
             {
                 case "exit":
@@ -33,19 +34,29 @@ public class Main {
                     System.out.println();
                     break;
                 case "type":
-                    String cmd = arguments[1];
-                    if(Constants.BUILT_IN_CMDS.contains(cmd))
-                        System.out.println(cmd+" is a shell builtin");
+                    subCmd = arguments[1];
+                    if(Constants.BUILT_IN_CMDS.contains(subCmd))
+                        System.out.println(subCmd+" is a shell builtin");
                     else {
-                        Path path = Helper.checkPathForCmd(cmd);
+                        Path path = Helper.checkPathForCmd(subCmd);
                         if(path!=null)
-                            System.out.println(cmd + " is "+path);
+                            System.out.println(subCmd + " is "+path);
                         else
-                            System.out.println(cmd + ": not found");
+                            System.out.println(subCmd + ": not found");
                     }
                     break;
                 default:
-                    System.out.println(command + ": command not found");
+                    subCmd = arguments[0];
+                    Path path = Helper.checkPathForCmd(subCmd);
+                    if(path==null)
+                        System.out.println(command + ": command not found");
+                    else
+                    {
+                        ProcessBuilder pb = new ProcessBuilder(arguments);
+                        pb.inheritIO();
+                        Process process = pb.start();
+                        process.waitFor();
+                    }
             }
         }
     }
