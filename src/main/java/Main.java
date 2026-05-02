@@ -80,6 +80,9 @@ public class Main {
                                             cwdStack.removeLast();
                                         else
                                             System.out.println("cd: "+cdArg+": No such file or directory.");
+                                        break;
+                                    default:
+                                        cwdStack.addLast(split);
                                 }
                             }
 
