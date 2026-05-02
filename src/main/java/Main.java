@@ -50,14 +50,13 @@ public class Main {
                     System.out.println(currentDir);
                     break;
                 case "cd":
-                    String cdArg = arguments[0];
+                    String cdArg = arguments[1];
                     if(cdArg.startsWith("/"))
                     {
                         Path path = Paths.get(cdArg);
                         if(Files.isDirectory(path))
                         {
                             currentDir = cdArg;
-                            System.out.println("Changed path");
                         }
                         else
                             System.out.println("cd: "+cdArg+": No such file or directory");
