@@ -57,6 +57,7 @@ public class Main {
                         if(Files.isDirectory(path))
                         {
                             currentDir = cdArg;
+                            System.out.println("Changed path");
                         }
                         else
                             System.out.println("cd: "+cdArg+": No such file or directory");
