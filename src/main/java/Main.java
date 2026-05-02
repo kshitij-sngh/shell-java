@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class Main {
@@ -44,6 +45,10 @@ public class Main {
                         else
                             System.out.println(subCmd + ": not found");
                     }
+                    break;
+                case "pwd":
+                    String pwd = System.getenv().get("PWD");
+                    System.out.println(pwd);
                     break;
                 default:
                     subCmd = arguments[0];
