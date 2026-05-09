@@ -43,6 +43,6 @@ public class Helper {
         if(!currentArg.isEmpty())
             args.add(currentArg.toString());
 
-        return (String[]) args.toArray();
+        return args.toArray(new String[args.size()]);
     }
 }
