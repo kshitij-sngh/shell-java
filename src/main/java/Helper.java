@@ -27,7 +27,7 @@ public class Helper {
         for(int i=0; i<line.length(); i++)
         {
             ch = line.charAt(i);
-            if('\\'==ch)
+            if('\\'==ch && !insideSingleQuotes)
             {
                 if(i+1<line.length())
                     currentArg.append(line.charAt(i+1));
