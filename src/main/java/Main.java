@@ -3,10 +3,6 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.LinkedList;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -21,7 +17,8 @@ public class Main {
             if(line==null)
                 break;
 
-            String[] arguments = line.trim().split(" ");
+            //String[] arguments = line.trim().split(" ");
+            String[] arguments = Helper.parseArguments(line);
             String command = arguments[0];
             String subCmd;
             switch (command)
