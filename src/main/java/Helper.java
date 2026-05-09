@@ -21,16 +21,21 @@ public class Helper {
         List<String> args = new ArrayList<>();
         StringBuilder currentArg = new StringBuilder();
         boolean insideSingleQuotes = false;
+        boolean insideDoubleQuotes = false;
         char ch;
 
         for(int i=0; i<line.length(); i++)
         {
             ch = line.charAt(i);
-            if('\''==ch)
+            if('\"'==ch && !insideSingleQuotes)
+            {
+                insideDoubleQuotes=!insideDoubleQuotes;
+            }
+            else if('\''==ch && !insideDoubleQuotes)
             {
                 insideSingleQuotes=!insideSingleQuotes;
             }
-            else if(' '==ch && !insideSingleQuotes)
+            else if(' '==ch && !insideDoubleQuotes && !insideSingleQuotes)
             {
                 if(!currentArg.isEmpty()) {
                     args.add(currentArg.toString());
@@ -43,6 +48,6 @@ public class Helper {
         if(!currentArg.isEmpty())
             args.add(currentArg.toString());
 
-        return args.toArray(new String[args.size()]);
+        return args.toArray(new String[0]);
     }
 }
