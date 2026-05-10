@@ -24,7 +24,7 @@ public class CommandRegistry {
         COMMANDS.put("type", (arguments, out, err, dir)->{
             if (arguments.length >= 2) {
                 String subCmd = arguments[1];
-                if (Constants.BUILT_IN_CMDS.contains(subCmd))
+                if (CommandRegistry.getCommandAction(subCmd)!=null)
                     out.println(subCmd + " is a shell builtin");
                 else {
                     Path path = Helper.checkPathForCmd(subCmd);
