@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,11 +24,13 @@ public class Main {
 
             PrintStream out = System.out;
             boolean isOutputRedirectedToFile = false;
+            boolean isOutputRedirectedToFileAppend = false;
             String outputFilePath = "";
             File outputFile = null;
 
             PrintStream err = System.err;
             boolean isErrRedirectedToFile = false;
+            boolean isErrRedirectedToFileAppend = false;
             String errFilePath = "";
             File errFile = null;
 
@@ -47,6 +46,12 @@ public class Main {
                     errFilePath = arguments[i+1];
                     i++;
                 }
+                else if(">>".equals(arguments[i]) && i+1<arguments.length)
+                {
+                    isOutputRedirectedToFileAppend = true;
+                    errFilePath = arguments[i+1];
+                    i++;
+                }
                 else
                     tmp.add(arguments[i]);
             }
@@ -55,6 +60,11 @@ public class Main {
             {
                 outputFile = new File(currentDir).toPath().resolve(outputFilePath).toFile();
                 out = new PrintStream(outputFile);
+            }
+            if(isOutputRedirectedToFileAppend)
+            {
+                outputFile = new File(currentDir).toPath().resolve(outputFilePath).toFile();
+                out = new PrintStream(new FileOutputStream(outputFile, true));
             }
             if(isErrRedirectedToFile)
             {
