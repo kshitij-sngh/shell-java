@@ -123,7 +123,7 @@ public class Main {
                     }
             }
 
-            if(isOutputRedirectedToFile && out!=null && out !=System.out)
+            if(isOutputRedirectedToFile && out != System.out)
                 out.close();
         }
     }
