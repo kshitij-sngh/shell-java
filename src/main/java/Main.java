@@ -49,7 +49,7 @@ public class Main {
                 else if(">>".equals(arguments[i]) && i+1<arguments.length)
                 {
                     isOutputRedirectedToFileAppend = true;
-                    errFilePath = arguments[i+1];
+                    outputFilePath = arguments[i+1];
                     i++;
                 }
                 else
@@ -137,7 +137,9 @@ public class Main {
                         ProcessBuilder pb = new ProcessBuilder(arguments);
                         pb.directory(new File(currentDir));
 
-                        if(isOutputRedirectedToFile)
+                        if(isOutputRedirectedToFileAppend)
+                            pb.redirectOutput(ProcessBuilder.Redirect.appendTo(outputFile));
+                        else if(isOutputRedirectedToFile)
                         {
                             pb.redirectOutput(ProcessBuilder.Redirect.to(outputFile));
                         }
@@ -156,7 +158,7 @@ public class Main {
                     }
             }
 
-            if(isOutputRedirectedToFile && out != System.out)
+            if((isOutputRedirectedToFile || isOutputRedirectedToFileAppend) && out != System.out)
                 out.close();
             if(isErrRedirectedToFile && err != System.err)
                 err.close();
