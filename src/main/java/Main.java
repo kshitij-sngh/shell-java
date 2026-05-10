@@ -52,6 +52,11 @@ public class Main {
                     outputFilePath = arguments[i+1];
                     i++;
                 }
+            else if("2>>".equals(arguments[i]) && i+1<arguments.length) {
+                isErrRedirectedToFileAppend = true;
+                errFilePath = arguments[i+1];
+                i++;
+            }
                 else
                     tmp.add(arguments[i]);
             }
@@ -70,6 +75,11 @@ public class Main {
             {
                 errFile = new File(currentDir).toPath().resolve(errFilePath).toFile();
                 err = new PrintStream(errFile);
+            }
+            if(isErrRedirectedToFileAppend)
+            {
+                errFile = new File(currentDir).toPath().resolve(errFilePath).toFile();
+                err = new PrintStream(new FileOutputStream(errFile, true));
             }
 
             String subCmd;
@@ -146,7 +156,9 @@ public class Main {
                         else
                             pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
-                        if(isErrRedirectedToFile)
+                        if(isErrRedirectedToFileAppend)
+                            pb.redirectError(ProcessBuilder.Redirect.appendTo(errFile));
+                        else if(isErrRedirectedToFile)
                         {
                             pb.redirectError(ProcessBuilder.Redirect.to(errFile));
                         }
@@ -160,7 +172,7 @@ public class Main {
 
             if((isOutputRedirectedToFile || isOutputRedirectedToFileAppend) && out != System.out)
                 out.close();
-            if(isErrRedirectedToFile && err != System.err)
+            if((isErrRedirectedToFile || isErrRedirectedToFileAppend) & err != System.err)
                 err.close();
         }
     }
