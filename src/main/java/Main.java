@@ -27,85 +27,43 @@ public class Main {
             PrintStream err = Helper.getErrStream(redirectResult);
 
             try{
-                String command = arguments[0];
-                String subCmd;
+                String commandName = arguments[0];
+                CommandAction action = CommandRegistry.getCommandAction(commandName);
 
-                switch (command) {
-                    case "exit":
-                        return;
-                    case "echo":
-                        if (arguments.length > 1) {
-                            out.print(arguments[1]);
-                            for (int i = 2; i < arguments.length; i++)
-                                out.print(" " + arguments[i]);
-                        }
-                        out.println();
+                if(action !=null)
+                {
+                    String result = action.execute(arguments, out, err, currentDir);
+                    if(result.equals(Constants.SHUTDOWN_SIGNAL))
                         break;
-                    case "type":
-                        if (arguments.length >= 2) {
-                            subCmd = arguments[1];
-                            if (Constants.BUILT_IN_CMDS.contains(subCmd))
-                                out.println(subCmd + " is a shell builtin");
-                            else {
-                                Path path = Helper.checkPathForCmd(subCmd);
-                                if (path != null)
-                                    out.println(subCmd + " is " + path);
-                                else
-                                    err.println(subCmd + ": not found");
-                            }
-                        }
-                        break;
-                    case "pwd":
-                        out.println(currentDir);
-                        break;
-                    case "cd":
-                        if (arguments.length > 1) {
-                            String cdArg = arguments[1];
-                            Path targetPath;
-                            if (cdArg.startsWith("~")) {
-                                String envHome = System.getenv("HOME");
-                                if (cdArg.length() > 1)
-                                    targetPath = Path.of(envHome, cdArg.substring(1)).resolve(cdArg).normalize();
-                                else
-                                    targetPath = Path.of(envHome);
+                    currentDir = result;
+                }
+                else
+                {
+                    String subCmd = arguments[0];
+                    Path path = Helper.checkPathForCmd(subCmd);
+                    if (path == null)
+                        err.println(commandName + ": command not found");
+                    else {
+                        ProcessBuilder pb = new ProcessBuilder(arguments);
+                        pb.directory(new File(currentDir));
 
-                            } else {
-                                targetPath = Path.of(currentDir).resolve(cdArg).normalize();
-                            }
+                        if (redirectResult.isAppendOutput())
+                            pb.redirectOutput(ProcessBuilder.Redirect.appendTo(redirectResult.getOutputFile()));
+                        else if (redirectResult.getOutputFile()!=null) {
+                            pb.redirectOutput(ProcessBuilder.Redirect.to(redirectResult.getOutputFile()));
+                        } else
+                            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
-                            if (Files.isDirectory(targetPath)) {
-                                currentDir = targetPath.toAbsolutePath().toString();
-                            } else
-                                err.println("cd: " + cdArg + ": No such file or directory");
+                        if (redirectResult.isAppendErr())
+                            pb.redirectError(ProcessBuilder.Redirect.appendTo(redirectResult.getErrFile()));
+                        else if (redirectResult.getErrFile() !=null) {
+                            pb.redirectError(ProcessBuilder.Redirect.to(redirectResult.getErrFile()));
+                        } else
+                            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-                        }
-                        break;
-                    default:
-                        subCmd = arguments[0];
-                        Path path = Helper.checkPathForCmd(subCmd);
-                        if (path == null)
-                            err.println(command + ": command not found");
-                        else {
-                            ProcessBuilder pb = new ProcessBuilder(arguments);
-                            pb.directory(new File(currentDir));
-
-                            if (redirectResult.isAppendOutput())
-                                pb.redirectOutput(ProcessBuilder.Redirect.appendTo(redirectResult.getOutputFile()));
-                            else if (redirectResult.getOutputFile()!=null) {
-                                pb.redirectOutput(ProcessBuilder.Redirect.to(redirectResult.getOutputFile()));
-                            } else
-                                pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-
-                            if (redirectResult.isAppendErr())
-                                pb.redirectError(ProcessBuilder.Redirect.appendTo(redirectResult.getErrFile()));
-                            else if (redirectResult.getErrFile() !=null) {
-                                pb.redirectError(ProcessBuilder.Redirect.to(redirectResult.getErrFile()));
-                            } else
-                                pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-                            Process process = pb.start();
-                            process.waitFor();
-                        }
+                        Process process = pb.start();
+                        process.waitFor();
+                    }
                 }
             }
             finally {
