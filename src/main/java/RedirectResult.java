@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.PrintStream;
 
 public class RedirectResult {
     String[] cleanedArgs;
