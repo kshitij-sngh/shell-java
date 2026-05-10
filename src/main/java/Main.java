@@ -10,170 +10,110 @@ public class Main {
         BufferedReader inpReader = new BufferedReader(new InputStreamReader(System.in));
         String currentDir = System.getProperty("user.dir"); //"/tmp/pineapple";
 
-        while (true)
-        {
+        while (true) {
             System.out.print("$ ");
 
             String line = inpReader.readLine();
-            if(line==null)
+            if (line == null)
                 break;
 
             //String[] arguments = line.trim().split(" ");
-            String[] arguments = Helper.parseArguments(line);
-            String command = arguments[0];
+            String[] rawArguments = Helper.parseArguments(line);
+            RedirectResult redirectResult = Helper.parseRedirection(rawArguments, currentDir);
+            String[] arguments = redirectResult.getCleanedArgs();
 
-            PrintStream out = System.out;
-            boolean isOutputRedirectedToFile = false;
-            boolean isOutputRedirectedToFileAppend = false;
-            String outputFilePath = "";
-            File outputFile = null;
 
-            PrintStream err = System.err;
-            boolean isErrRedirectedToFile = false;
-            boolean isErrRedirectedToFileAppend = false;
-            String errFilePath = "";
-            File errFile = null;
+            PrintStream out = Helper.getOutStream(redirectResult);
+            PrintStream err = Helper.getErrStream(redirectResult);
 
-            List<String> tmp = new ArrayList<>();
-            for(int i=0; i<arguments.length; i++)
-            {    if((">".equals(arguments[i]) || "1>".equals(arguments[i])) && i+1<arguments.length) {
-                    isOutputRedirectedToFile = true;
-                    outputFilePath = arguments[i+1];
-                    i++;
-                }
-                else if("2>".equals(arguments[i]) && i+1<arguments.length) {
-                    isErrRedirectedToFile = true;
-                    errFilePath = arguments[i+1];
-                    i++;
-                }
-                else if((">>".equals(arguments[i]) || "1>>".equals(arguments[i])) && i+1<arguments.length)
-                {
-                    isOutputRedirectedToFileAppend = true;
-                    outputFilePath = arguments[i+1];
-                    i++;
-                }
-            else if("2>>".equals(arguments[i]) && i+1<arguments.length) {
-                isErrRedirectedToFileAppend = true;
-                errFilePath = arguments[i+1];
-                i++;
-            }
-                else
-                    tmp.add(arguments[i]);
-            }
-            arguments = tmp.toArray(new String[0]);
-            if(isOutputRedirectedToFile)
-            {
-                outputFile = new File(currentDir).toPath().resolve(outputFilePath).toFile();
-                out = new PrintStream(outputFile);
-            }
-            if(isOutputRedirectedToFileAppend)
-            {
-                outputFile = new File(currentDir).toPath().resolve(outputFilePath).toFile();
-                out = new PrintStream(new FileOutputStream(outputFile, true));
-            }
-            if(isErrRedirectedToFile)
-            {
-                errFile = new File(currentDir).toPath().resolve(errFilePath).toFile();
-                err = new PrintStream(errFile);
-            }
-            if(isErrRedirectedToFileAppend)
-            {
-                errFile = new File(currentDir).toPath().resolve(errFilePath).toFile();
-                err = new PrintStream(new FileOutputStream(errFile, true));
-            }
+            try{
+                String command = arguments[0];
+                String subCmd;
 
-            String subCmd;
-            switch (command)
-            {
-                case "exit":
-                    return;
-                case "echo":
-                    if(arguments.length>1) {
-                        out.print(arguments[1]);
-                        for (int i = 2; i < arguments.length; i++)
-                            out.print(" " + arguments[i]);
-                    }
-                    out.println();
-                    break;
-                case "type":
-                    subCmd = arguments[1];
-                    if(Constants.BUILT_IN_CMDS.contains(subCmd))
-                        out.println(subCmd+" is a shell builtin");
-                    else {
+                switch (command) {
+                    case "exit":
+                        return;
+                    case "echo":
+                        if (arguments.length > 1) {
+                            out.print(arguments[1]);
+                            for (int i = 2; i < arguments.length; i++)
+                                out.print(" " + arguments[i]);
+                        }
+                        out.println();
+                        break;
+                    case "type":
+                        if (arguments.length >= 2) {
+                            subCmd = arguments[1];
+                            if (Constants.BUILT_IN_CMDS.contains(subCmd))
+                                out.println(subCmd + " is a shell builtin");
+                            else {
+                                Path path = Helper.checkPathForCmd(subCmd);
+                                if (path != null)
+                                    out.println(subCmd + " is " + path);
+                                else
+                                    err.println(subCmd + ": not found");
+                            }
+                        }
+                        break;
+                    case "pwd":
+                        out.println(currentDir);
+                        break;
+                    case "cd":
+                        if (arguments.length > 1) {
+                            String cdArg = arguments[1];
+                            Path targetPath;
+                            if (cdArg.startsWith("~")) {
+                                String envHome = System.getenv("HOME");
+                                if (cdArg.length() > 1)
+                                    targetPath = Path.of(envHome, cdArg.substring(1)).resolve(cdArg).normalize();
+                                else
+                                    targetPath = Path.of(envHome);
+
+                            } else {
+                                targetPath = Path.of(currentDir).resolve(cdArg).normalize();
+                            }
+
+                            if (Files.isDirectory(targetPath)) {
+                                currentDir = targetPath.toAbsolutePath().toString();
+                            } else
+                                err.println("cd: " + cdArg + ": No such file or directory");
+
+                        }
+                        break;
+                    default:
+                        subCmd = arguments[0];
                         Path path = Helper.checkPathForCmd(subCmd);
-                        if(path!=null)
-                            out.println(subCmd + " is "+path);
-                        else
-                            err.println(subCmd + ": not found");
-                    }
-                    break;
-                case "pwd":
-                    out.println(currentDir);
-                    break;
-                case "cd":
-                    if(arguments.length>1) {
-                        String cdArg = arguments[1];
-                        Path targetPath;
-                        if(cdArg.startsWith("~"))
-                        {
-                            String envHome = System.getenv("HOME");
-                            if(cdArg.length()>1)
-                                targetPath = Path.of(envHome, cdArg.substring(1)).resolve(cdArg).normalize();
-                            else
-                                targetPath = Path.of(envHome);
+                        if (path == null)
+                            err.println(command + ": command not found");
+                        else {
+                            ProcessBuilder pb = new ProcessBuilder(arguments);
+                            pb.directory(new File(currentDir));
 
+                            if (redirectResult.isAppendOutput())
+                                pb.redirectOutput(ProcessBuilder.Redirect.appendTo(redirectResult.getOutputFile()));
+                            else if (redirectResult.getOutputFile()!=null) {
+                                pb.redirectOutput(ProcessBuilder.Redirect.to(redirectResult.getOutputFile()));
+                            } else
+                                pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+
+                            if (redirectResult.isAppendErr())
+                                pb.redirectError(ProcessBuilder.Redirect.appendTo(redirectResult.getErrFile()));
+                            else if (redirectResult.getErrFile() !=null) {
+                                pb.redirectError(ProcessBuilder.Redirect.to(redirectResult.getErrFile()));
+                            } else
+                                pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+                            Process process = pb.start();
+                            process.waitFor();
                         }
-                        else
-                        {
-                            targetPath = Path.of(currentDir).resolve(cdArg).normalize();
-                        }
-
-                        if(Files.isDirectory(targetPath))
-                        {
-                            currentDir = targetPath.toAbsolutePath().toString();
-                        }
-                        else
-                            err.println("cd: "+cdArg+": No such file or directory");
-
-                    }
-                    break;
-                default:
-                    subCmd = arguments[0];
-                    Path path = Helper.checkPathForCmd(subCmd);
-                    if(path==null)
-                        err.println(command + ": command not found");
-                    else
-                    {
-                        ProcessBuilder pb = new ProcessBuilder(arguments);
-                        pb.directory(new File(currentDir));
-
-                        if(isOutputRedirectedToFileAppend)
-                            pb.redirectOutput(ProcessBuilder.Redirect.appendTo(outputFile));
-                        else if(isOutputRedirectedToFile)
-                        {
-                            pb.redirectOutput(ProcessBuilder.Redirect.to(outputFile));
-                        }
-                        else
-                            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-
-                        if(isErrRedirectedToFileAppend)
-                            pb.redirectError(ProcessBuilder.Redirect.appendTo(errFile));
-                        else if(isErrRedirectedToFile)
-                        {
-                            pb.redirectError(ProcessBuilder.Redirect.to(errFile));
-                        }
-                        else
-                            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-                        Process process = pb.start();
-                        process.waitFor();
-                    }
+                }
             }
-
-            if((isOutputRedirectedToFile || isOutputRedirectedToFileAppend) && out != System.out)
-                out.close();
-            if((isErrRedirectedToFile || isErrRedirectedToFileAppend) & err != System.err)
-                err.close();
+            finally {
+                if(out!=System.out)
+                    out.close();
+                if(err!=System.err)
+                    err.close();
+            }
         }
     }
 }

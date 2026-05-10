@@ -1,3 +1,7 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,4 +60,97 @@ public class Helper {
 
         return args.toArray(new String[0]);
     }
+
+    public static RedirectResult parseRedirection(String[] arguments, String currentDir)
+    {
+        boolean isOutputRedirectedToFile = false;
+        boolean isOutputRedirectedToFileAppend = false;
+        String outputFilePath = "";
+        File outputFile = null;
+
+        boolean isErrRedirectedToFile = false;
+        boolean isErrRedirectedToFileAppend = false;
+        String errFilePath = "";
+        File errFile = null;
+
+        List<String> tmp = new ArrayList<>();
+        for(int i=0; i<arguments.length; i++)
+        {
+            if((">".equals(arguments[i]) || "1>".equals(arguments[i])) && i+1<arguments.length) {
+                isOutputRedirectedToFile = true;
+                outputFilePath = arguments[i+1];
+                i++;
+            }
+            else if("2>".equals(arguments[i]) && i+1<arguments.length) {
+                isErrRedirectedToFile = true;
+                errFilePath = arguments[i+1];
+                i++;
+            }
+            else if((">>".equals(arguments[i]) || "1>>".equals(arguments[i])) && i+1<arguments.length)
+            {
+                isOutputRedirectedToFileAppend = true;
+                outputFilePath = arguments[i+1];
+                i++;
+            }
+            else if("2>>".equals(arguments[i]) && i+1<arguments.length) {
+                isErrRedirectedToFileAppend = true;
+                errFilePath = arguments[i+1];
+                i++;
+            }
+            else
+                tmp.add(arguments[i]);
+        }
+        arguments = tmp.toArray(new String[0]);
+        if(isOutputRedirectedToFile)
+        {
+            outputFile = new File(currentDir).toPath().resolve(outputFilePath).toFile();
+        }
+        if(isOutputRedirectedToFileAppend)
+        {
+            outputFile = new File(currentDir).toPath().resolve(outputFilePath).toFile();
+        }
+        if(isErrRedirectedToFile)
+        {
+            errFile = new File(currentDir).toPath().resolve(errFilePath).toFile();
+        }
+        if(isErrRedirectedToFileAppend)
+        {
+            errFile = new File(currentDir).toPath().resolve(errFilePath).toFile();
+        }
+
+        RedirectResult redirectResult = new RedirectResult(arguments, outputFile, isOutputRedirectedToFileAppend, errFile, isErrRedirectedToFileAppend);
+        return redirectResult;
+    }
+    public static PrintStream getOutStream(RedirectResult redirectResult) throws FileNotFoundException {
+        PrintStream out = System.out;
+        if(redirectResult.getOutputFile() !=null)
+        {
+            if(redirectResult.isAppendOutput())
+            {
+                out = new PrintStream(new FileOutputStream(redirectResult.getOutputFile(), true));
+            }
+            else
+            {
+                out = new PrintStream(redirectResult.getOutputFile());
+            }
+        }
+        return out;
+    }
+
+    public static PrintStream getErrStream(RedirectResult redirectResult) throws FileNotFoundException {
+        PrintStream err = System.err;
+        if(redirectResult.getErrFile() !=null)
+        {
+            if(redirectResult.isAppendErr())
+            {
+                err = new PrintStream(new FileOutputStream(redirectResult.getErrFile(), true));
+            }
+            else
+            {
+                err = new PrintStream(redirectResult.getErrFile());
+            }
+        }
+        return err;
+    }
+
 }
