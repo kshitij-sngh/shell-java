@@ -1,8 +1,12 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -20,6 +24,29 @@ public class Main {
             //String[] arguments = line.trim().split(" ");
             String[] arguments = Helper.parseArguments(line);
             String command = arguments[0];
+
+            PrintStream out = System.out;
+            boolean isOutputRedirectedToFile = false;
+            String filePath = "";
+            File outputFile = null;
+
+            List<String> tmp = new ArrayList<>();
+            for(int i=0; i<arguments.length; i++)
+            {    if((">".equals(arguments[i]) || "1>".equals(arguments[i])) && i+1<arguments.length) {
+                    isOutputRedirectedToFile = true;
+                    filePath = arguments[i+1];
+                    i++;
+                }
+                else
+                    tmp.add(arguments[i]);
+            }
+            arguments = tmp.toArray(new String[0]);
+            if(isOutputRedirectedToFile)
+            {
+                outputFile = new File(currentDir).toPath().resolve(filePath).toFile();
+                out = new PrintStream(outputFile);
+            }
+
             String subCmd;
             switch (command)
             {
@@ -27,26 +54,26 @@ public class Main {
                     return;
                 case "echo":
                     if(arguments.length>1) {
-                        System.out.print(arguments[1]);
+                        out.print(arguments[1]);
                         for (int i = 2; i < arguments.length; i++)
-                            System.out.print(" " + arguments[i]);
+                            out.print(" " + arguments[i]);
                     }
-                    System.out.println();
+                    out.println();
                     break;
                 case "type":
                     subCmd = arguments[1];
                     if(Constants.BUILT_IN_CMDS.contains(subCmd))
-                        System.out.println(subCmd+" is a shell builtin");
+                        out.println(subCmd+" is a shell builtin");
                     else {
                         Path path = Helper.checkPathForCmd(subCmd);
                         if(path!=null)
-                            System.out.println(subCmd + " is "+path);
+                            out.println(subCmd + " is "+path);
                         else
-                            System.out.println(subCmd + ": not found");
+                            out.println(subCmd + ": not found");
                     }
                     break;
                 case "pwd":
-                    System.out.println(currentDir);
+                    out.println(currentDir);
                     break;
                 case "cd":
                     if(arguments.length>1) {
@@ -84,11 +111,20 @@ public class Main {
                     {
                         ProcessBuilder pb = new ProcessBuilder(arguments);
                         pb.directory(new File(currentDir));
-                        pb.inheritIO();
+                        if(isOutputRedirectedToFile)
+                        {
+                            pb.redirectOutput(ProcessBuilder.Redirect.to(outputFile));
+                            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                        }
+                        else
+                            pb.inheritIO();
                         Process process = pb.start();
                         process.waitFor();
                     }
             }
+
+            if(isOutputRedirectedToFile && out!=null && out !=System.out)
+                out.close();
         }
     }
 }
