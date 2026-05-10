@@ -46,7 +46,7 @@ public class Main {
                     errFilePath = arguments[i+1];
                     i++;
                 }
-                else if(">>".equals(arguments[i]) && i+1<arguments.length)
+                else if((">>".equals(arguments[i]) || "1>>".equals(arguments[i])) && i+1<arguments.length)
                 {
                     isOutputRedirectedToFileAppend = true;
                     outputFilePath = arguments[i+1];
