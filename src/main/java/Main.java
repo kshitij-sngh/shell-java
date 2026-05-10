@@ -27,14 +27,24 @@ public class Main {
 
             PrintStream out = System.out;
             boolean isOutputRedirectedToFile = false;
-            String filePath = "";
+            String outputFilePath = "";
             File outputFile = null;
+
+            PrintStream err = System.err;
+            boolean isErrRedirectedToFile = false;
+            String errFilePath = "";
+            File errFile = null;
 
             List<String> tmp = new ArrayList<>();
             for(int i=0; i<arguments.length; i++)
             {    if((">".equals(arguments[i]) || "1>".equals(arguments[i])) && i+1<arguments.length) {
                     isOutputRedirectedToFile = true;
-                    filePath = arguments[i+1];
+                    outputFilePath = arguments[i+1];
+                    i++;
+                }
+                else if("2>".equals(arguments[i]) && i+1<arguments.length) {
+                    isErrRedirectedToFile = true;
+                    errFilePath = arguments[i+1];
                     i++;
                 }
                 else
@@ -43,8 +53,13 @@ public class Main {
             arguments = tmp.toArray(new String[0]);
             if(isOutputRedirectedToFile)
             {
-                outputFile = new File(currentDir).toPath().resolve(filePath).toFile();
+                outputFile = new File(currentDir).toPath().resolve(outputFilePath).toFile();
                 out = new PrintStream(outputFile);
+            }
+            if(isErrRedirectedToFile)
+            {
+                errFile = new File(currentDir).toPath().resolve(errFilePath).toFile();
+                err = new PrintStream(errFile);
             }
 
             String subCmd;
@@ -69,7 +84,7 @@ public class Main {
                         if(path!=null)
                             out.println(subCmd + " is "+path);
                         else
-                            out.println(subCmd + ": not found");
+                            err.println(subCmd + ": not found");
                     }
                     break;
                 case "pwd":
@@ -98,7 +113,7 @@ public class Main {
                             currentDir = targetPath.toAbsolutePath().toString();
                         }
                         else
-                            System.out.println("cd: "+cdArg+": No such file or directory");
+                            err.println("cd: "+cdArg+": No such file or directory");
 
                     }
                     break;
@@ -106,18 +121,22 @@ public class Main {
                     subCmd = arguments[0];
                     Path path = Helper.checkPathForCmd(subCmd);
                     if(path==null)
-                        System.out.println(command + ": command not found");
+                        err.println(command + ": command not found");
                     else
                     {
                         ProcessBuilder pb = new ProcessBuilder(arguments);
                         pb.directory(new File(currentDir));
+                        pb.inheritIO();
+
                         if(isOutputRedirectedToFile)
                         {
                             pb.redirectOutput(ProcessBuilder.Redirect.to(outputFile));
-                            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                         }
-                        else
-                            pb.inheritIO();
+                        if(isErrRedirectedToFile)
+                        {
+                            pb.redirectError(ProcessBuilder.Redirect.to(errFile));
+                        }
+
                         Process process = pb.start();
                         process.waitFor();
                     }
@@ -125,6 +144,8 @@ public class Main {
 
             if(isOutputRedirectedToFile && out != System.out)
                 out.close();
+            if(isErrRedirectedToFile && err != System.err)
+                err.close();
         }
     }
 }
